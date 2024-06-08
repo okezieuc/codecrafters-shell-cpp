@@ -101,6 +101,22 @@ int main()
       continue;
     }
 
+    if (fct.type == Executable)
+    {
+      std::string command_with_full_path = fct.executable_path;
+
+      for (int argn = 1; argn < command_vector.size(); argn++)
+      {
+        command_with_full_path += " ";
+        command_with_full_path += command_vector[argn];
+      }
+
+      const char *command_ptr = command_with_full_path.c_str();
+
+      system(command_ptr);
+      continue;
+    }
+
     std::cout << input << ": command not found\n";
   }
 }
