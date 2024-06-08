@@ -1,5 +1,8 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
+
+std::vector<std::string> parse_command_to_string_vector(std::string command);
 
 int main()
 {
