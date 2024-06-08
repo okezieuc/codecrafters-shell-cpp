@@ -66,8 +66,10 @@ int main()
         continue;
       }
 
-      if(command_vector[0] == "type") {
-        if(command_vector.size() < 2) {
+      if (command_vector[0] == "type")
+      {
+        if (command_vector.size() < 2)
+        {
           continue;
         }
 
