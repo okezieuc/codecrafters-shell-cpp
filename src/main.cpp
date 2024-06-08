@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <cstdlib>
+#include <filesystem>
 
 enum CommandType
 {
@@ -12,11 +14,13 @@ enum CommandType
 struct FullCommandType
 {
   CommandType type;
-  std::string executable_location;
+  std::string executable_path;
 };
 
 std::vector<std::string> parse_command_to_string_vector(std::string command);
 FullCommandType command_to_full_command_type(std::string command);
+std::string find_command_executable_path(std::string command);
+std::string find_command_in_path(std::string command, std::string path);
 
 int main()
 {
@@ -82,7 +86,7 @@ int main()
           std::cout << command_name << " is a shell builtin\n";
           break;
         case Executable:
-          std::cout << command_name << " is " << command_type.executable_location << "\n";
+          std::cout << command_name << " is " << command_type.executable_path << "\n";
           break;
         case Nonexistent:
           std::cout << command_name << " not found\n";
@@ -141,8 +145,77 @@ FullCommandType command_to_full_command_type(std::string command)
     return fct;
   }
 
+  // check if the command is found in path
+  std::string exec_path = find_command_executable_path(command);
+  if (exec_path != "")
+  {
+    FullCommandType fct;
+    fct.type = Executable;
+    fct.executable_path = exec_path;
+    return fct;
+  }
+
   // nonexistent types
   FullCommandType fct;
   fct.type = CommandType::Nonexistent;
   return fct;
+}
+
+std::string find_command_executable_path(std::string command)
+{
+  char *path = getenv("PATH");
+
+  if (path == NULL)
+  {
+    return "";
+  }
+
+  std::string path_acc = "";
+
+  // accumulate values in path_acc
+  // and search whenever the directory is complete
+  char *p = path;
+  while (*p != '\0')
+  {
+    // search for end of paths
+    if (*p == ':')
+    {
+      std::string exec_path = find_command_in_path(command, path_acc);
+
+      if (exec_path != "")
+      {
+        return exec_path;
+      }
+
+      path_acc = "";
+    }
+    else
+    {
+      path_acc += *p;
+    }
+    p++;
+  }
+
+  // handle the last path in the string
+  std::string exec_path = find_command_in_path(command, path_acc);
+
+  if (exec_path != "")
+  {
+    return exec_path;
+  }
+
+  return "";
+}
+
+// checks for a command in the directory path
+std::string find_command_in_path(std::string command, std::string path)
+{
+  for (const auto &entry : std::filesystem::directory_iterator(path))
+  {
+    if (entry.path() == (path + "/" + command))
+    {
+      return entry.path();
+    }
+  }
+  return "";
 }
