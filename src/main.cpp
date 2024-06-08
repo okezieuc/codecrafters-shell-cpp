@@ -2,15 +2,27 @@
 #include <vector>
 #include <algorithm>
 
+enum CommandType
+{
+  Builtin,
+  Executable,
+  Nonexistent,
+};
+
+struct FullCommandType
+{
+  CommandType type;
+  std::string executable_location;
+};
+
 std::vector<std::string> parse_command_to_string_vector(std::string command);
+FullCommandType command_to_full_command_type(std::string command);
 
 int main()
 {
   // Flush after every std::cout / std:cerr
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
-
-  std::vector<std::string> builtin_commands = {"exit", "echo"};
 
   while (true)
   {
@@ -26,8 +38,10 @@ int main()
       continue;
     }
 
+    FullCommandType fct = command_to_full_command_type(command_vector[0]);
+
     // handle builtin commands
-    if (std::find(builtin_commands.begin(), builtin_commands.end(), command_vector[0]) != builtin_commands.end())
+    if (fct.type == Builtin)
     {
       if (command_vector[0] == "exit")
       {
@@ -49,6 +63,33 @@ int main()
         }
 
         std::cout << "\n";
+        continue;
+      }
+
+      if(command_vector[0] == "type") {
+        if(command_vector.size() < 2) {
+          continue;
+        }
+
+        std::string command_name = command_vector[1];
+        FullCommandType command_type = command_to_full_command_type(command_name);
+
+        switch (command_type.type)
+        {
+        case Builtin:
+          std::cout << command_name << " is a shell builtin\n";
+          break;
+        case Executable:
+          std::cout << command_name << " is " << command_type.executable_location << "\n";
+          break;
+        case Nonexistent:
+          std::cout << command_name << " not found\n";
+          break;
+        default:
+          break;
+        }
+
+        continue;
       }
 
       continue;
@@ -82,4 +123,24 @@ std::vector<std::string> parse_command_to_string_vector(std::string command)
   }
 
   return args;
+}
+
+// returns the full command type of a command (without arguments)
+FullCommandType command_to_full_command_type(std::string command)
+{
+  std::vector<std::string> builtin_commands = {"exit", "echo", "type"};
+
+  // handle builtin commands
+  if (std::find(builtin_commands.begin(), builtin_commands.end(), command) != builtin_commands.end())
+  {
+    FullCommandType fct;
+    fct.type = CommandType::Builtin;
+
+    return fct;
+  }
+
+  // nonexistent types
+  FullCommandType fct;
+  fct.type = CommandType::Nonexistent;
+  return fct;
 }
