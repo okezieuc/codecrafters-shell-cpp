@@ -10,7 +10,7 @@ int main()
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
 
-  std::vector<std::string> builtin_commands = {"exit"};
+  std::vector<std::string> builtin_commands = {"exit", "echo"};
 
   while (true)
   {
@@ -33,6 +33,22 @@ int main()
       {
         int exit_code = std::stoi(command_vector[1]);
         return exit_code;
+      }
+
+      if (command_vector[0] == "echo")
+      {
+        for (int i = 1; i < command_vector.size(); i++)
+        {
+          // print a space before every item that is not the first
+          if (i != 1)
+          {
+            std::cout << " ";
+          }
+
+          std::cout << command_vector[i];
+        }
+
+        std::cout << "\n";
       }
 
       continue;
